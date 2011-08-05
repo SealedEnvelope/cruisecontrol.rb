@@ -1,6 +1,6 @@
 # CruiseControl.rb can send email notices whenever build is broken or fixed. To make it happen, you need to tell it how
 # to send email, and who to send it to. Do the following:
-# 
+#
 # 1. Configure SMTP server connection. Open *$cruise_data*/site_config.rb,
 #    read the comments in it and edit according to your situation.
 
@@ -28,7 +28,7 @@
 class EmailNotifier < BuilderPlugin
   attr_accessor :emails
   attr_writer :from
-  
+
   def initialize(project = nil)
     @emails = []
   end
@@ -38,19 +38,13 @@ class EmailNotifier < BuilderPlugin
   end
 
   def build_finished(build)
-    return if @emails.empty? or not build.failed?
-    email :build_report, build, "#{build.project.name} build #{build.abbreviated_label} failed",
-          "The build failed."
+    return if @emails.empty?
+    email :build_report, build, "#{build.project.name} build #{build.abbreviated_label} #{build.status}",
+          "Build status: #{build.status}."
   end
 
-  def build_fixed(build, previous_build)
-    return if @emails.empty?
-    email :build_report, build, "#{build.project.name} build #{build.abbreviated_label} fixed",
-          "The build has been fixed."
-  end
-  
   private
-  
+
   def email(template, build, *args)
     BuildMailer.send(template, build, @emails, from, *args).deliver
     CruiseControl::Log.event("Sent e-mail to #{@emails.size == 1 ? "1 person" : "#{@emails.size} people"}", :debug)
